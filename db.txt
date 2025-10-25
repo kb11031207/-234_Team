@@ -1,0 +1,51 @@
+users 
+   user id 
+   Email,
+   firebase_uid,
+   username,
+   created at,
+   photo_url,
+   updated_at
+
+
+events
+   event id,
+   owner_id -fk to userid,
+   longitude,
+   latitude,
+   event name,
+   location text,
+   date of event,
+   access_code,'
+   is_public,
+   thumbnail,
+   datecreated,
+   description,
+   can_add => who can upload: 'owner_only', 'code_holders', 'public'
+   qr_code_url
+   cover_photo_url,
+   updated at
+
+media
+   media id,
+   event id fk,
+   url,
+   uploader_id -fk,
+   media type,
+   width, and heght? dont know if needeed
+   meta data? 
+   timestamps
+   thumbnail_url,
+   content_type  -image/jpeg?
+   file_size in bytes
+
+faces 
+   id
+   media id
+
+
+
+
+
+
+
