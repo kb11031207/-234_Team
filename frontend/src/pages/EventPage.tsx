@@ -36,8 +36,9 @@ const EventPage = () => {
 
       <div style={{ marginTop: '3rem' }}>
         <h2>Gallery</h2>
-        <p>Photo gallery will appear here...</p>
-        {/* TODO: Implement photo grid */}
+        <Link to={`/events/${eventId}/gallery`}>
+          <button style={{ padding: '1rem 2rem', cursor: 'pointer' }}>View Gallery</button>
+        </Link>
       </div>
     </div>
   )

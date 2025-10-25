@@ -9,6 +9,8 @@ import UploadPage from './pages/UploadPage'
 import SearchFacePage from './pages/SearchFacePage'
 import MyEventsPage from './pages/MyEventsPage'
 import NotFoundPage from './pages/NotFoundPage'
+import CodeLookupPage from './pages/CodeLookupPage'
+import GalleryPage from './pages/GalleryPage'
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -29,8 +31,10 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<HomePage />} />
               <Route path="create" element={<CreateEventPage />} />
+              <Route path="code" element={<CodeLookupPage />} />
               <Route path="events/:eventId" element={<EventPage />} />
               <Route path="events/:eventId/upload" element={<UploadPage />} />
+              <Route path="events/:eventId/gallery" element={<GalleryPage />} />
               <Route path="events/:eventId/search" element={<SearchFacePage />} />
               <Route path="my-events" element={<MyEventsPage />} />
               <Route path="*" element={<NotFoundPage />} />

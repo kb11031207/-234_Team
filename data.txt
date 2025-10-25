@@ -1,5 +1,16 @@
 Home Page:
-    
+    Map marker locations for nearby events(or just any event we have for the demo)
+    that are public
+    user location, probably
+
 
 Gallery Page:
+    Event and event information
+    Picture blob url(s)
+
+View Events Page(Manager):
+    events associated with Manager
+
+Profile Page(Manager):
+    All account information
 
