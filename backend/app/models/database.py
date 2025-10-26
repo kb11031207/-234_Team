@@ -1,7 +1,7 @@
 """SQLAlchemy models matching DATABASE_SCHEMA.md"""
 
-from sqlalchemy import Column, String, Boolean, Integer, DECIMAL, ForeignKey, Text, BigInteger, CheckConstraint, UniqueConstraint, TIMESTAMP
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, String, Boolean, Integer, DECIMAL, ForeignKey, Text, BigInteger, CheckConstraint, UniqueConstraint, TIMESTAMP, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
@@ -121,7 +121,7 @@ class DetectedFace(Base):
     event_id = Column(UUID(as_uuid=True), ForeignKey("events.event_id", ondelete="CASCADE"), nullable=False, index=True)
     
     # Face encoding (128-dimensional vector from face_recognition library)
-    face_encoding = Column(JSONB, nullable=True)
+    face_encoding = Column(JSON, nullable=True)
     
     # Bounding box (normalized 0-1)
     bbox_x = Column(DECIMAL(5, 4))
