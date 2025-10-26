@@ -46,24 +46,40 @@ async def create_event(
     return new_event
 
 
-@router.get("/{event_id}", response_model=EventResponse)
-async def get_event(
-    event_id: str,
+@router.get("/public", response_model=List[EventResponse])
+async def get_public_events(
+    latitude: float = None,
+    longitude: float = None,
+    radius: int = 50,
+    limit: int = 50,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get event details (public or with valid access code)"""
+    """Get all public events, optionally filtered by location"""
+    query = select(Event).where(Event.is_public == True)
+    
+    # TODO: Add geospatial filtering if lat/long provided
+    # For now, just return all public events
+    
+    query = query.limit(limit)
+    
+    result = await db.execute(query)
+    events = result.scalars().all()
+    
+    return events
+
+
+@router.get("/me/events", response_model=List[EventResponse])
+async def get_my_events(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get all events owned by current user"""
     result = await db.execute(
-        select(Event).where(Event.event_id == event_id)
+        select(Event).where(Event.owner_id == current_user.user_id)
     )
-    event = result.scalar_one_or_none()
+    events = result.scalars().all()
     
-    if not event:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found",
-        )
-    
-    return event
+    return events
 
 
 @router.post("/validate-access")
@@ -91,16 +107,91 @@ async def validate_access_code(
     }
 
 
-@router.get("/me/events", response_model=List[EventResponse])
-async def get_my_events(
+@router.get("/{event_id}", response_model=EventResponse)
+async def get_event(
+    event_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get event details (public or with valid access code)"""
+    result = await db.execute(
+        select(Event).where(Event.event_id == event_id)
+    )
+    event = result.scalar_one_or_none()
+    
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found",
+        )
+    
+    return event
+
+
+@router.put("/{event_id}", response_model=EventResponse)
+async def update_event(
+    event_id: str,
+    event_data: EventCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Get all events owned by current user"""
+    """Update an event (owner only)"""
+    # Get event
     result = await db.execute(
-        select(Event).where(Event.owner_id == current_user.user_id)
+        select(Event).where(Event.event_id == event_id)
     )
-    events = result.scalars().all()
+    event = result.scalar_one_or_none()
     
-    return events
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found",
+        )
+    
+    # Check ownership
+    if event.owner_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this event",
+        )
+    
+    # Update fields
+    for field, value in event_data.model_dump(exclude_unset=True).items():
+        setattr(event, field, value)
+    
+    await db.commit()
+    await db.refresh(event)
+    
+    return event
 
+
+@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_event(
+    event_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete an event (owner only)"""
+    # Get event
+    result = await db.execute(
+        select(Event).where(Event.event_id == event_id)
+    )
+    event = result.scalar_one_or_none()
+    
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found",
+        )
+    
+    # Check ownership
+    if event.owner_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete this event",
+        )
+    
+    # Delete event (cascades to media, faces, etc.)
+    await db.delete(event)
+    await db.commit()
+    
+    return None

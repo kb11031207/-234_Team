@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { Icon, LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Event } from '../../lib/mockData'
+import { Event } from '../../types'
 import { Coordinates, calculateDistance, formatDistance } from '../../lib/geolocation'
 import Button from '../ui/Button'
 

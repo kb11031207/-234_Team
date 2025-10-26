@@ -3,9 +3,9 @@ import { useAuth } from '../context/AuthContext'
 import Sidebar from '../components/layout/Sidebar'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
-import { api } from '../api'
+import { getMyEvents } from '../api'
 import { useEffect, useState } from 'react'
-import { Event } from '../lib/mockData'
+import { Event } from '../types'
 
 export default function MyEventsPage() {
   const { user, signInWithGoogle } = useAuth()
@@ -17,12 +17,12 @@ export default function MyEventsPage() {
     const loadEvents = async () => {
       if (user) {
         try {
-          const allEvents = await api.events.getAll()
-          // Filter to show user's events (mock: filter by owner_id = 'user-1')
-          const myEvents = allEvents.filter(e => e.owner_id === 'user-1')
+          const myEvents = await getMyEvents()
           setEvents(myEvents)
         } catch (error) {
           console.error('Error loading events:', error)
+          // If unauthorized, show empty state instead of error
+          setEvents([])
         } finally {
           setIsLoading(false)
         }

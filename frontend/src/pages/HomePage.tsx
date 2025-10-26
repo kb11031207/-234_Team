@@ -7,8 +7,8 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Modal from '../components/ui/Modal'
 import EventMap from '../components/map/EventMap'
-import { api } from '../api'
-import { Event } from '../lib/mockData'
+import { getPublicEvents, validateAccessCode } from '../api'
+import { Event } from '../types'
 import { getCurrentPosition, Coordinates, calculateDistance, formatDistance } from '../lib/geolocation'
 
 const HomePage = () => {
@@ -56,10 +56,10 @@ const HomePage = () => {
       const position = await getCurrentPosition()
       setUserLocation(position)
 
-      // Fetch all events and filter for public ones with coordinates
-      const events = await api.events.getAll()
+      // Fetch public events from backend
+      const events = await getPublicEvents()
       const publicEventsWithCoords = events.filter(
-        (event) => event.is_public && event.latitude && event.longitude
+        (event) => event.latitude && event.longitude
       )
       setPublicEvents(publicEventsWithCoords)
 
@@ -112,95 +112,104 @@ const HomePage = () => {
         currentPage="/" 
       />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Map Section - Always visible at top, lowest z-index */}
-        <div className="h-1/2 border-b border-neutral-dark/10 relative" style={{ zIndex: 1 }}>
-          {loadingLocation && (
-            <div className="absolute inset-0 flex items-center justify-center bg-neutral-light/95" style={{ zIndex: 2 }}>
-              <div className="text-center">
-                <div className="inline-block bg-white px-8 py-4 rounded-lg shadow-card">
-                  <p className="text-subtitle text-text-primary mb-2">
-                    🌍 finding your location...
-                  </p>
-                  <p className="text-body text-text-secondary">
-                    please allow location access
-                  </p>
-                </div>
-              </div>
+      {/* Main Content Area - Single unified scrollable section */}
+      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-neutral-light to-white">
+        <div className="max-w-7xl mx-auto p-8">
+          {/* Welcome Header */}
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-title text-text-primary mb-3">
+              welcome to eventmemory
+            </h2>
+            <p className="text-subtitle text-text-secondary max-w-2xl mx-auto">
+              share and discover memories from your events with ai-powered face detection
+            </p>
+          </div>
+
+          {/* Map Section - Now part of the scrollable content */}
+          <Card className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-subtitle">🗺️ discovering nearby events</h3>
+              {!loadingLocation && !locationError && (
+                <Button 
+                  variant="secondary" 
+                  onClick={handleShowNearbyEvents}
+                  className="text-sm"
+                >
+                  refresh location
+                </Button>
+              )}
             </div>
-          )}
 
-          {locationError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-neutral-light/95" style={{ zIndex: 2 }}>
-              <div className="text-center">
-                <div className="inline-block bg-red-50 border-2 border-red-200 px-8 py-4 rounded-lg shadow-card">
-                  <p className="text-subtitle text-red-700 mb-2">
-                    📍 location unavailable
-                  </p>
-                  <p className="text-body text-red-600 mb-4">
-                    {locationError}
-                  </p>
-                  <button
-                    onClick={handleShowNearbyEvents}
-                    className="btn-primary"
-                  >
-                    try again
-                  </button>
+            <div className="h-[500px] rounded-lg overflow-hidden relative bg-neutral-light">
+              {loadingLocation && (
+                <div className="absolute inset-0 flex items-center justify-center bg-neutral-light/95 z-10">
+                  <div className="text-center">
+                    <div className="inline-block bg-white px-8 py-4 rounded-lg shadow-card">
+                      <p className="text-subtitle text-text-primary mb-2">
+                        🌍 finding your location...
+                      </p>
+                      <p className="text-body text-text-secondary">
+                        please allow location access
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {userLocation && publicEvents.length > 0 ? (
-            <EventMap
-              events={publicEvents}
-              userLocation={userLocation}
-              onEventClick={handleEventClick}
-              className="h-full"
-            />
-          ) : (
-            !loadingLocation && !locationError && (
-              <div className="h-full flex items-center justify-center bg-neutral-light">
-                <div className="text-center p-8">
-                  <p className="text-subtitle text-text-secondary mb-4">
-                    🗺️ discovering nearby events
-                  </p>
-                  <p className="text-body text-text-secondary">
-                    map loading...
-                  </p>
+              {locationError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-neutral-light/95 z-10">
+                  <div className="text-center">
+                    <div className="inline-block bg-red-50 border-2 border-red-200 px-8 py-4 rounded-lg shadow-card">
+                      <p className="text-subtitle text-red-700 mb-2">
+                        📍 location unavailable
+                      </p>
+                      <p className="text-body text-red-600 mb-4">
+                        {locationError}
+                      </p>
+                      <Button
+                        variant="primary"
+                        onClick={handleShowNearbyEvents}
+                      >
+                        try again
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )
-          )}
-        </div>
+              )}
 
-        {/* Content Section - Scrollable below map */}
-        <div 
-          className="flex-1 bg-gradient-to-br from-neutral-light to-white overflow-y-auto"
-          style={{ 
-            zIndex: 10,
-            WebkitOverflowScrolling: 'touch',
-            scrollBehavior: 'smooth'
-          }}
-        >
-          <div className="max-w-6xl mx-auto p-8">
-            {/* Welcome Header */}
-            <div className="text-center mb-8">
-              <h2 className="text-4xl font-title text-text-primary mb-3">
-                welcome to eventmemory
-              </h2>
-              <p className="text-subtitle text-text-secondary max-w-2xl mx-auto">
-                share and discover memories from your events with ai-powered face detection
-              </p>
+              {userLocation && publicEvents.length > 0 ? (
+                <EventMap
+                  events={publicEvents}
+                  userLocation={userLocation}
+                  onEventClick={handleEventClick}
+                  className="h-full"
+                />
+              ) : (
+                !loadingLocation && !locationError && (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center p-8">
+                      <div className="text-6xl mb-4">🗺️</div>
+                      <p className="text-subtitle text-text-secondary mb-2">
+                        loading map...
+                      </p>
+                    </div>
+                  </div>
+                )
+              )}
             </div>
 
             {/* Stats Bar */}
             {publicEvents.length > 0 && (
-              <div className="flex justify-center gap-8 mb-8">
+              <div className="flex justify-center gap-8 mt-6 pt-6 border-t border-neutral-dark/10">
                 <div className="text-center">
                   <p className="text-3xl font-title text-accent">{publicEvents.length}</p>
                   <p className="text-label text-text-secondary">nearby events</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-3xl font-title text-accent">
+                    {nearbyEvents.length}
+                  </p>
+                  <p className="text-label text-text-secondary">within 50 miles</p>
                 </div>
                 <div className="text-center">
                   <p className="text-3xl font-title text-accent">
@@ -210,65 +219,65 @@ const HomePage = () => {
                 </div>
               </div>
             )}
+          </Card>
 
-            {/* Features Grid */}
-            <div className="grid md:grid-cols-4 gap-4 mb-8">
-              <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
-                <div className="text-3xl">📸</div>
-                <h3 className="text-subtitle">easy uploads</h3>
-                <p className="text-body text-text-secondary text-sm">
-                  drag & drop photos
-                </p>
-              </Card>
-
-              <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
-                <div className="text-3xl">🔐</div>
-                <h3 className="text-subtitle">secure access</h3>
-                <p className="text-body text-text-secondary text-sm">
-                  private event codes
-                </p>
-              </Card>
-
-              <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
-                <div className="text-3xl">🧠</div>
-                <h3 className="text-subtitle">ai detection</h3>
-                <p className="text-body text-text-secondary text-sm">
-                  group photos by person
-                </p>
-              </Card>
-
-              <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
-                <div className="text-3xl">🔍</div>
-                <h3 className="text-subtitle">find yourself</h3>
-                <p className="text-body text-text-secondary text-sm">
-                  instant photo search
-                </p>
-              </Card>
-            </div>
-
-            {/* Getting Started */}
-            <div className="text-center">
-              <Card className="inline-block max-w-2xl">
-                <h3 className="text-subtitle mb-4">getting started</h3>
-                <div className="grid md:grid-cols-2 gap-4 text-body text-text-secondary text-left">
-                  <div>
-                    <p className="mb-2">📍 <strong>Nearby Events:</strong> shown on map above</p>
-                    <p className="mb-2">🔑 <strong>Join Event:</strong> use sidebar button</p>
-                  </div>
-                  <div>
-                    <p className="mb-2">➕ <strong>Create Event:</strong> sign in first</p>
-                    <p className="mb-2">🗺️ <strong>Explore:</strong> click markers to view events</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Tagline */}
-            <div className="text-center mt-8 mb-4">
-              <p className="text-label text-text-secondary">
-                nostalgic • refined • elegant
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-4 gap-4 mb-8">
+            <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
+              <div className="text-3xl">📸</div>
+              <h3 className="text-subtitle">easy uploads</h3>
+              <p className="text-body text-text-secondary text-sm">
+                drag & drop photos
               </p>
-            </div>
+            </Card>
+
+            <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
+              <div className="text-3xl">🔐</div>
+              <h3 className="text-subtitle">secure access</h3>
+              <p className="text-body text-text-secondary text-sm">
+                private event codes
+              </p>
+            </Card>
+
+            <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
+              <div className="text-3xl">🧠</div>
+              <h3 className="text-subtitle">ai detection</h3>
+              <p className="text-body text-text-secondary text-sm">
+                group photos by person
+              </p>
+            </Card>
+
+            <Card className="space-y-2 hover:shadow-lg transition-shadow text-center">
+              <div className="text-3xl">🔍</div>
+              <h3 className="text-subtitle">find yourself</h3>
+              <p className="text-body text-text-secondary text-sm">
+                instant photo search
+              </p>
+            </Card>
+          </div>
+
+          {/* Getting Started */}
+          <div className="text-center">
+            <Card className="inline-block max-w-2xl">
+              <h3 className="text-subtitle mb-4">getting started</h3>
+              <div className="grid md:grid-cols-2 gap-4 text-body text-text-secondary text-left">
+                <div>
+                  <p className="mb-2">📍 <strong>Nearby Events:</strong> shown on map above</p>
+                  <p className="mb-2">🔑 <strong>Join Event:</strong> use sidebar button</p>
+                </div>
+                <div>
+                  <p className="mb-2">➕ <strong>Create Event:</strong> sign in first</p>
+                  <p className="mb-2">🗺️ <strong>Explore:</strong> click markers to view events</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Tagline */}
+          <div className="text-center mt-8 mb-4">
+            <p className="text-label text-text-secondary">
+              nostalgic • refined • elegant
+            </p>
           </div>
         </div>
       </div>

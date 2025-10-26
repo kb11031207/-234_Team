@@ -57,20 +57,57 @@ async def confirm_upload(
     db: AsyncSession = Depends(get_db),
 ):
     """Confirm upload and trigger face detection"""
-    # TODO: Get media from DB, update status
+    from sqlalchemy import select
+    from app.models.database import Media as MediaModel
+    
+    # Get media from database
+    result = await db.execute(
+        select(MediaModel).where(MediaModel.media_id == media_id)
+    )
+    media = result.scalar_one_or_none()
+    
+    if not media:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Media not found"
+        )
+    
+    # Update status to processing
+    media.face_detection_status = "processing"
+    await db.commit()
     
     # Trigger face detection in background
     background_tasks.add_task(process_media_faces, media_id)
     
-    return {"status": "processing", "media_id": media_id}
+    return {
+        "status": "processing",
+        "media_id": media_id,
+        "message": "Face detection started"
+    }
 
 
 @router.get("/events/{event_id}/media", response_model=List[MediaResponse])
 async def list_event_media(
     event_id: str,
+    limit: int = 50,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get all media for an event"""
-    # TODO: Implement media listing with pagination
-    return []
+    """Get all media for an event with pagination"""
+    from sqlalchemy import select, desc
+    from app.models.database import Media as MediaModel
+    
+    # Query media for the event
+    query = (
+        select(MediaModel)
+        .where(MediaModel.event_id == event_id)
+        .order_by(desc(MediaModel.created_at))
+        .limit(limit)
+        .offset(offset)
+    )
+    
+    result = await db.execute(query)
+    media_list = result.scalars().all()
+    
+    return media_list
 
