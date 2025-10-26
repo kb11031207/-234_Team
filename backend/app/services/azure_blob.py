@@ -53,6 +53,29 @@ async def generate_presigned_upload_url(
     return presigned_url, blob_url
 
 
+async def download_blob(blob_url: str) -> bytes:
+    """
+    Download a blob from Azure Blob Storage
+    
+    Args:
+        blob_url: Full blob URL
+        
+    Returns:
+        Blob content as bytes
+    """
+    # Extract blob name from URL
+    blob_name = blob_url.split('/')[-1].split('?')[0]
+    
+    # Get blob client and download
+    blob_service_client = get_blob_client()
+    container_client = blob_service_client.get_container_client(settings.AZURE_STORAGE_CONTAINER_NAME)
+    blob_client = container_client.get_blob_client(blob_name)
+    
+    # Download blob content
+    download_stream = blob_client.download_blob()
+    return download_stream.readall()
+
+
 async def delete_blob(blob_url: str):
     """
     Delete a blob from Azure Blob Storage

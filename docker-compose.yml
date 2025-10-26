@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: event_photos
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,8 +29,8 @@ services:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/event_photos
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME}
-      - AZURE_FACE_API_KEY=${AZURE_FACE_API_KEY}
-      - AZURE_FACE_API_ENDPOINT=${AZURE_FACE_API_ENDPOINT}
+      - FACE_RECOGNITION_MODEL=large
+      - FACE_RECOGNITION_TOLERANCE=0.6
       - FIREBASE_SERVICE_ACCOUNT_PATH=/app/firebase-service-account.json
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=development
@@ -41,7 +41,7 @@ services:
     volumes:
       - ./backend/app:/app/app
       - ./backend/alembic:/app/alembic
-      - ./firebase-service-account.json:/app/firebase-service-account.json:ro
+      - ./firebase-service-account:/app/firebase-service-account.json:ro
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   frontend:

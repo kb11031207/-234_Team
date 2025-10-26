@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.endpoints import auth, events, media, faces
+from app.api.endpoints import auth, events, media, faces, users
 
 app = FastAPI(
     title="Event Photo Sharing API",
@@ -24,6 +24,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(events.router, prefix="/api/v1/events", tags=["events"])
 app.include_router(media.router, prefix="/api/v1/media", tags=["media"])
 app.include_router(faces.router, prefix="/api/v1/faces", tags=["faces"])

@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+firebase-service-account
 firebase-service-account.json
 
 # Python
@@ -54,3 +55,6 @@ coverage/
 
 # Docker
 .docker/
+
+# Firebase
+firebase-service-account.json
