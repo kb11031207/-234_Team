@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     AZURE_STORAGE_CONNECTION_STRING: str
     AZURE_STORAGE_CONTAINER_NAME: str = "event-media"
     
-    # Azure Face API
-    AZURE_FACE_API_KEY: str
-    AZURE_FACE_API_ENDPOINT: str
+    # Face Recognition (Open Source)
+    FACE_RECOGNITION_MODEL: str = "large"  # "large" or "small"
+    FACE_RECOGNITION_TOLERANCE: float = 0.6  # Lower = more strict matching
     
     # Firebase
     FIREBASE_SERVICE_ACCOUNT_PATH: str

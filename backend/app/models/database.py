@@ -1,7 +1,7 @@
 """SQLAlchemy models matching DATABASE_SCHEMA.md"""
 
-from sqlalchemy import Column, String, Boolean, Integer, DECIMAL, ForeignKey, Text, BigInteger, CheckConstraint, TIMESTAMP
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Boolean, Integer, DECIMAL, ForeignKey, Text, BigInteger, CheckConstraint, UniqueConstraint, TIMESTAMP
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
@@ -113,15 +113,15 @@ class Media(Base):
 
 
 class DetectedFace(Base):
-    """Individual faces detected by Azure Face API"""
+    """Individual faces detected by face_recognition library"""
     __tablename__ = "detected_faces"
     
     face_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     media_id = Column(UUID(as_uuid=True), ForeignKey("media.media_id", ondelete="CASCADE"), nullable=False, index=True)
     event_id = Column(UUID(as_uuid=True), ForeignKey("events.event_id", ondelete="CASCADE"), nullable=False, index=True)
     
-    # Azure Face API data
-    azure_face_id = Column(String(255), index=True)
+    # Face encoding (128-dimensional vector from face_recognition library)
+    face_encoding = Column(JSONB, nullable=True)
     
     # Bounding box (normalized 0-1)
     bbox_x = Column(DECIMAL(5, 4))
@@ -193,6 +193,7 @@ class ClusterMember(Base):
     # Constraints
     __table_args__ = (
         CheckConstraint("similarity_score >= 0 AND similarity_score <= 1", name="check_similarity_score"),
+        UniqueConstraint("cluster_id", "face_id", name="unique_cluster_face"),
     )
     
     # Relationships
