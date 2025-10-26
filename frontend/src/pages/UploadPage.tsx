@@ -1,21 +1,36 @@
 import { useParams } from 'react-router-dom'
+import { Alert } from 'react-bootstrap'
+import UploadZone from '../components/media/UploadZone'
 
 const UploadPage = () => {
   const { eventId } = useParams()
 
+  if (!eventId) {
+    return (
+      <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+        <Alert variant="danger">
+          No event ID provided. Please select an event to upload photos to.
+        </Alert>
+      </div>
+    )
+  }
+
   return (
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
       <h1>Upload Photos</h1>
-      <p>Event ID: {eventId}</p>
-
-      <div style={{ marginTop: '2rem', padding: '3rem', border: '2px dashed #ccc', borderRadius: '8px', textAlign: 'center' }}>
-        <p>Drag & drop photos here or click to select</p>
-        <p style={{ color: '#666', marginTop: '1rem' }}>Upload feature coming soon...</p>
-        {/* TODO: Implement upload with react-dropzone */}
-      </div>
+      <p>Event: {eventId}</p>
+      
+      <UploadZone
+        eventId={eventId}
+        onUploadComplete={(mediaId) => {
+          console.log('Upload completed:', mediaId)
+        }}
+        onUploadError={(error) => {
+          console.error('Upload failed:', error)
+        }}
+      />
     </div>
   )
 }
 
 export default UploadPage
-

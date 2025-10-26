@@ -1,30 +1,42 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getMyEvents } from '../api/events'
+import { getGoogleMapsApiKey } from '../api/config'
 import { Event } from '../types'
-
-const GOOGLE_MAPS_API_KEY = 'AIzaSyA6v0jrm4VTGaZvlpfWoBVrledwilza2Ls' // <-- Replace with your actual API key
 
 const HomePage: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null)
   const [mapLoaded, setMapLoaded] = useState(false)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [events, setEvents] = useState<Event[]>([])
+  const [apiKey, setApiKey] = useState<string>('')
 
   // Load Google Maps script
   useEffect(() => {
-    if (window.google && window.google.maps) {
-      setMapLoaded(true)
-      return
+    async function loadMap() {
+      try {
+        const key = await getGoogleMapsApiKey()
+        setApiKey(key)
+        
+        if (window.google && window.google.maps) {
+          setMapLoaded(true)
+          return
+        }
+
+        const script = document.createElement('script')
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${key}`
+        script.async = true
+        script.onload = () => setMapLoaded(true)
+        document.body.appendChild(script)
+
+        return () => {
+          document.body.removeChild(script)
+        }
+      } catch (error) {
+        console.error('Failed to load Google Maps:', error)
+      }
     }
-    const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`
-    script.async = true
-    script.onload = () => setMapLoaded(true)
-    document.body.appendChild(script)
-    return () => {
-      document.body.removeChild(script)
-    }
+    loadMap()
   }, [])
 
   // Get user location
