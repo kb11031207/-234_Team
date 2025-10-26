@@ -1,0 +1,125 @@
+{
+  "designSystem": {
+    "name": "EventMemory Design System",
+    "version": "1.0",
+    "visualStyle": {
+      "theme": "vintage-modern hybrid",
+      "colorPalette": {
+        "primaryBackground": "#D2C1A1",
+        "accent": "#C7B291",
+        "neutralLight": "#E8E4DC",
+        "neutralDark": "#3A2E1F",
+        "textPrimary": "#000000",
+        "textSecondary": "#4B3F2F",
+        "overlayBackground": "rgba(210,193,161,0.85)"
+      },
+      "typography": {
+        "fontFamily": "Sans-serif (e.g., Inter, Helvetica, Arial)",
+        "titleWeight": 700,
+        "bodyWeight": 400,
+        "sizes": {
+          "title": "24px",
+          "subtitle": "18px",
+          "body": "14px",
+          "label": "12px"
+        }
+      },
+      "buttons": {
+        "shape": "rounded-2xl",
+        "padding": "10px 20px",
+        "hoverEffect": "slight brightness increase",
+        "textCase": "lowercase"
+      },
+      "inputs": {
+        "background": "#E4E0D0",
+        "borderRadius": "12px",
+        "padding": "8px 12px",
+        "fontSize": "14px"
+      },
+      "containers": {
+        "card": {
+          "background": "#D2C1A1",
+          "borderRadius": "16px",
+          "shadow": "0 2px 8px rgba(0,0,0,0.1)",
+          "padding": "24px"
+        },
+        "panel": {
+          "background": "rgba(210,193,161,0.85)",
+          "borderRadius": "12px",
+          "padding": "16px"
+        }
+      }
+    },
+    "layoutSystem": {
+      "baseGrid": 8,
+      "alignment": "centered",
+      "panelPlacement": {
+        "rightSidebar": {
+          "position": "absolute",
+          "alignment": "right-center",
+          "width": "fit-content",
+          "elements": [
+            "sign in",
+            "join event",
+            "create event",
+            "view recent events"
+          ]
+        },
+        "modalCenter": {
+          "position": "center",
+          "alignment": "middle",
+          "background": "card",
+          "useCase": ["login", "profile", "event list"]
+        }
+      },
+      "pageStructure": {
+        "landingPage": {
+          "background": "map-style texture or vintage pattern",
+          "floatingMenu": "right sidebar with toggle options"
+        },
+        "loginPage": {
+          "background": "same as landing",
+          "centerPanel": "credential form with labels + rounded inputs"
+        },
+        "dashboardPage": {
+          "rightSidebar": "menu with profile and event controls",
+          "mainCanvas": "interactive background"
+        },
+        "profilePage": {
+          "layout": "center card with avatar and username",
+          "style": "minimal, rounded container"
+        },
+        "eventListPage": {
+          "layout": "vertical stacked list",
+          "itemStyle": "rounded boxes with neutral background",
+          "spacing": "16px"
+        }
+      }
+    },
+    "interactionPatterns": {
+      "transitions": {
+        "default": "fade-in-out 0.3s ease",
+        "modal": "scale-up 0.25s ease"
+      },
+      "states": {
+        "hover": {
+          "opacity": 0.9
+        },
+        "active": {
+          "shadow": "0 0 10px rgba(0,0,0,0.15)"
+        }
+      }
+    },
+    "iconography": {
+      "style": "minimal outline",
+      "placement": "aligned right or beside labels",
+      "size": "16-20px"
+    },
+    "branding": {
+      "tone": "nostalgic, refined, elegant",
+      "imageryHint": "map-textured or paper-based backgrounds",
+      "uiMood": "warm, calm, minimal"
+    }
+  }
+}
+
