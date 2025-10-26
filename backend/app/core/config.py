@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
     
+    # Google Maps
+    GOOGLE_MAPS_API_KEY: str = "AIzaSyA6v0jrm4VTGaZvlpfWoBVrledwilza2Ls"
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
