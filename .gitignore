@@ -55,3 +55,6 @@ coverage/
 
 # Docker
 .docker/
+
+# Firebase
+firebase-service-account.json
