@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 from app.core.database import get_db
-from app.models.database import Media
+from app.models.database import Media, Event, User
 from app.schemas.pydantic import MediaUploadRequest, MediaResponse, PresignedUploadResponse
-from app.api.deps import verify_access_code
+from app.api.deps import verify_access_code, get_current_user
 from app.services.azure_blob import generate_presigned_upload_url
 from app.workers.face_processor import process_media_faces
 
@@ -117,6 +117,26 @@ async def list_event_media(
     return media_items
 
 
+@router.get("/{media_id}", response_model=MediaResponse)
+async def get_media(
+    media_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get a single media item by ID"""
+    result = await db.execute(
+        select(Media).where(Media.media_id == media_id)
+    )
+    media = result.scalar_one_or_none()
+    
+    if not media:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Media not found",
+        )
+    
+    return media
+
+
 @router.get("/{media_id}/faces")
 async def get_media_faces(
     media_id: str,
@@ -191,4 +211,44 @@ async def get_media_faces(
         "faces": response_faces,
         "total_faces": len(response_faces)
     }
+
+
+@router.delete("/{media_id}")
+async def delete_media(
+    media_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete a media item (owner or uploader only)"""
+    result = await db.execute(
+        select(Media).where(Media.media_id == media_id)
+    )
+    media = result.scalar_one_or_none()
+    
+    if not media:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Media not found",
+        )
+    
+    # Check if user is event owner or uploader
+    event_result = await db.execute(
+        select(Event).where(Event.event_id == media.event_id)
+    )
+    event = event_result.scalar_one_or_none()
+    
+    is_owner = event and event.owner_id == current_user.user_id
+    is_uploader = media.uploader_id == current_user.user_id
+    
+    if not (is_owner or is_uploader):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only event owner or uploader can delete media",
+        )
+    
+    # TODO: Delete from Azure Blob Storage as well
+    await db.delete(media)
+    await db.commit()
+    
+    return {"message": "Media deleted successfully"}
 

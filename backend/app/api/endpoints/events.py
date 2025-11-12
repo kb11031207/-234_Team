@@ -6,7 +6,7 @@ from sqlalchemy import select
 from typing import List
 from app.core.database import get_db
 from app.models.database import User, Event
-from app.schemas.pydantic import EventCreate, EventResponse, AccessCodeValidation, PublicEventResponse, EventStatsResponse
+from app.schemas.pydantic import EventCreate, EventUpdate, EventResponse, AccessCodeValidation, PublicEventResponse, EventStatsResponse
 from app.api.deps import get_current_user
 from app.services.access_code import generate_unique_access_code
 
@@ -83,11 +83,25 @@ async def validate_access_code(
             detail="Invalid access code",
         )
     
+    # Determine upload permissions based on event settings
+    can_upload = True  # Default to True for code holders
+    
+    if event.can_add == "owner_only":
+        # Would need to check if current user is the owner
+        # For now, assume False since we don't have user context
+        can_upload = False
+    elif event.can_add == "code_holders":
+        # Anyone with valid access code can upload
+        can_upload = True
+    elif event.can_add == "public":
+        # Anyone can upload
+        can_upload = True
+    
     return {
         "event_id": event.event_id,
         "title": event.title,
         "has_access": True,
-        "can_upload": True,  # TODO: Check can_add permissions
+        "can_upload": can_upload,
     }
 
 
@@ -231,4 +245,83 @@ async def get_event_statistics(
             "failed": int(media_row[6] or 0),
         }
     )
+
+
+@router.put("/{event_id}", response_model=EventResponse)
+async def update_event(
+    event_id: str,
+    event_data: EventUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update an event (owner only)"""
+    result = await db.execute(
+        select(Event).where(Event.event_id == event_id)
+    )
+    event = result.scalar_one_or_none()
+    
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found",
+        )
+    
+    if event.owner_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only event owner can update event",
+        )
+    
+    # Update fields if provided
+    if event_data.title is not None:
+        event.title = event_data.title
+    if event_data.description is not None:
+        event.description = event_data.description
+    if event_data.is_public is not None:
+        event.is_public = event_data.is_public
+    if event_data.can_add is not None:
+        event.can_add = event_data.can_add
+    if event_data.event_date is not None:
+        event.event_date = event_data.event_date
+    if event_data.location_text is not None:
+        event.location_text = event_data.location_text
+    if event_data.latitude is not None:
+        event.latitude = event_data.latitude
+    if event_data.longitude is not None:
+        event.longitude = event_data.longitude
+    
+    await db.commit()
+    await db.refresh(event)
+    
+    return event
+
+
+@router.delete("/{event_id}")
+async def delete_event(
+    event_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete an event (owner only)"""
+    result = await db.execute(
+        select(Event).where(Event.event_id == event_id)
+    )
+    event = result.scalar_one_or_none()
+    
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found",
+        )
+    
+    if event.owner_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only event owner can delete event",
+        )
+    
+    await db.delete(event)
+    await db.commit()
+    
+    return {"message": "Event deleted successfully"}
 

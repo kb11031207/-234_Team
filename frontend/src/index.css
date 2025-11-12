@@ -1,3 +1,6 @@
+/* Import Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
 * {
   margin: 0;
   padding: 0;

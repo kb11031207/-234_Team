@@ -52,6 +52,18 @@ class EventCreate(BaseModel):
     longitude: Optional[Decimal] = Field(None, ge=-180, le=180)
 
 
+class EventUpdate(BaseModel):
+    """Schema for updating an event (all fields optional)"""
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    is_public: Optional[bool] = None
+    can_add: Optional[str] = Field(None, pattern="^(owner_only|code_holders|public)$")
+    event_date: Optional[datetime] = None
+    location_text: Optional[str] = Field(None, max_length=255)
+    latitude: Optional[Decimal] = Field(None, ge=-90, le=90)
+    longitude: Optional[Decimal] = Field(None, ge=-180, le=180)
+
+
 class EventResponse(BaseModel):
     """Schema for event response"""
     event_id: UUID4
