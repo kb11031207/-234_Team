@@ -6,7 +6,7 @@ from sqlalchemy import select
 from typing import List
 from app.core.database import get_db
 from app.models.database import User, Event
-from app.schemas.pydantic import EventCreate, EventUpdate, EventResponse, AccessCodeValidation, PublicEventResponse, EventStatsResponse
+from app.schemas.pydantic import EventCreate, EventResponse, AccessCodeValidation
 from app.api.deps import get_current_user
 from app.services.access_code import generate_unique_access_code
 
@@ -46,6 +46,67 @@ async def create_event(
     return new_event
 
 
+@router.get("/public", response_model=List[EventResponse])
+async def get_public_events(
+    latitude: float = None,
+    longitude: float = None,
+    radius: int = 50,
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get all public events, optionally filtered by location"""
+    query = select(Event).where(Event.is_public == True)
+    
+    # TODO: Add geospatial filtering if lat/long provided
+    # For now, just return all public events
+    
+    query = query.limit(limit)
+    
+    result = await db.execute(query)
+    events = result.scalars().all()
+    
+    return events
+
+
+@router.get("/me/events", response_model=List[EventResponse])
+async def get_my_events(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get all events owned by current user"""
+    result = await db.execute(
+        select(Event).where(Event.owner_id == current_user.user_id)
+    )
+    events = result.scalars().all()
+    
+    return events
+
+
+@router.post("/validate-access")
+async def validate_access_code(
+    validation: AccessCodeValidation,
+    db: AsyncSession = Depends(get_db),
+):
+    """Validate access code and return event info"""
+    result = await db.execute(
+        select(Event).where(Event.access_code == validation.access_code)
+    )
+    event = result.scalar_one_or_none()
+    
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invalid access code",
+        )
+    
+    return {
+        "event_id": event.event_id,
+        "title": event.title,
+        "has_access": True,
+        "can_upload": True,  # TODO: Check can_add permissions
+    }
+
+
 @router.get("/{event_id}", response_model=EventResponse)
 async def get_event(
     event_id: str,
@@ -66,195 +127,15 @@ async def get_event(
     return event
 
 
-@router.post("/validate-access")
-async def validate_access_code(
-    validation: AccessCodeValidation,
-    db: AsyncSession = Depends(get_db),
-):
-    """Validate access code and return event info"""
-    result = await db.execute(
-        select(Event).where(Event.access_code == validation.access_code)
-    )
-    event = result.scalar_one_or_none()
-    
-    if not event:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Invalid access code",
-        )
-    
-    # Determine upload permissions based on event settings
-    can_upload = True  # Default to True for code holders
-    
-    if event.can_add == "owner_only":
-        # Would need to check if current user is the owner
-        # For now, assume False since we don't have user context
-        can_upload = False
-    elif event.can_add == "code_holders":
-        # Anyone with valid access code can upload
-        can_upload = True
-    elif event.can_add == "public":
-        # Anyone can upload
-        can_upload = True
-    
-    return {
-        "event_id": event.event_id,
-        "title": event.title,
-        "has_access": True,
-        "can_upload": can_upload,
-    }
-
-
-@router.get("/me/events", response_model=List[EventResponse])
-async def get_my_events(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Get all events owned by current user"""
-    result = await db.execute(
-        select(Event).where(Event.owner_id == current_user.user_id)
-    )
-    events = result.scalars().all()
-    
-    return events
-
-
-@router.get("/public", response_model=List[PublicEventResponse])
-async def get_public_events(
-    latitude: float = None,
-    longitude: float = None,
-    radius: float = 50.0,
-    limit: int = 50,
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Get public events (for home page map)
-    
-    Args:
-        latitude: User's latitude (optional, for nearby events)
-        longitude: User's longitude (optional)
-        radius: Search radius in km (default: 50)
-        limit: Max results (default: 50)
-    """
-    from sqlalchemy import func
-    from app.models.database import Media
-    
-    # Base query for public events
-    query = select(
-        Event,
-        func.count(Media.media_id).label('media_count')
-    ).outerjoin(
-        Media, Event.event_id == Media.event_id
-    ).where(
-        Event.is_public == True
-    ).group_by(Event.event_id)
-    
-    # TODO: Add distance-based filtering if lat/lon provided
-    # This requires PostGIS or distance calculation
-    
-    query = query.limit(limit)
-    
-    result = await db.execute(query)
-    rows = result.all()
-    
-    # Build response
-    events = []
-    for row in rows:
-        event = row[0]
-        media_count = row[1]
-        events.append(PublicEventResponse(
-            event_id=event.event_id,
-            title=event.title,
-            location_text=event.location_text,
-            latitude=event.latitude,
-            longitude=event.longitude,
-            event_date=event.event_date,
-            cover_photo_url=event.cover_photo_url,
-            media_count=media_count,
-            created_at=event.created_at,
-        ))
-    
-    return events
-
-
-@router.get("/{event_id}/stats", response_model=EventStatsResponse)
-async def get_event_statistics(
-    event_id: str,
-    db: AsyncSession = Depends(get_db),
-):
-    """Get event statistics"""
-    from sqlalchemy import func, case
-    from app.models.database import Media, DetectedFace, FaceCluster
-    
-    # Get event
-    event_result = await db.execute(
-        select(Event).where(Event.event_id == event_id)
-    )
-    event = event_result.scalar_one_or_none()
-    
-    if not event:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found",
-        )
-    
-    # Get media statistics
-    media_stats = await db.execute(
-        select(
-            func.count(Media.media_id).label('total_media'),
-            func.sum(case((Media.media_type == 'photo', 1), else_=0)).label('total_photos'),
-            func.sum(case((Media.media_type == 'video', 1), else_=0)).label('total_videos'),
-            func.sum(case((Media.face_detection_status == 'completed', 1), else_=0)).label('completed'),
-            func.sum(case((Media.face_detection_status == 'processing', 1), else_=0)).label('processing'),
-            func.sum(case((Media.face_detection_status == 'pending', 1), else_=0)).label('pending'),
-            func.sum(case((Media.face_detection_status == 'failed', 1), else_=0)).label('failed'),
-        ).where(Media.event_id == event_id)
-    )
-    media_row = media_stats.first()
-    
-    # Get face statistics
-    face_stats = await db.execute(
-        select(
-            func.count(DetectedFace.face_id).label('total_faces')
-        ).where(DetectedFace.event_id == event_id)
-    )
-    total_faces = face_stats.scalar() or 0
-    
-    # Get cluster statistics
-    cluster_stats = await db.execute(
-        select(
-            func.count(FaceCluster.cluster_id).label('total_clusters'),
-            func.count(FaceCluster.identified_user_id).label('identified_people')
-        ).where(FaceCluster.event_id == event_id)
-    )
-    cluster_row = cluster_stats.first()
-    
-    return EventStatsResponse(
-        event_id=event.event_id,
-        title=event.title,
-        total_media=media_row[0] or 0,
-        total_photos=int(media_row[1] or 0),
-        total_videos=int(media_row[2] or 0),
-        total_faces_detected=total_faces,
-        total_people_clusters=cluster_row[0] or 0,
-        identified_people=cluster_row[1] or 0,
-        processing_status={
-            "completed": int(media_row[3] or 0),
-            "processing": int(media_row[4] or 0),
-            "pending": int(media_row[5] or 0),
-            "failed": int(media_row[6] or 0),
-        }
-    )
-
-
 @router.put("/{event_id}", response_model=EventResponse)
 async def update_event(
     event_id: str,
-    event_data: EventUpdate,
+    event_data: EventCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Update an event (owner only)"""
+    # Get event
     result = await db.execute(
         select(Event).where(Event.event_id == event_id)
     )
@@ -266,29 +147,16 @@ async def update_event(
             detail="Event not found",
         )
     
+    # Check ownership
     if event.owner_id != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only event owner can update event",
+            detail="Not authorized to update this event",
         )
     
-    # Update fields if provided
-    if event_data.title is not None:
-        event.title = event_data.title
-    if event_data.description is not None:
-        event.description = event_data.description
-    if event_data.is_public is not None:
-        event.is_public = event_data.is_public
-    if event_data.can_add is not None:
-        event.can_add = event_data.can_add
-    if event_data.event_date is not None:
-        event.event_date = event_data.event_date
-    if event_data.location_text is not None:
-        event.location_text = event_data.location_text
-    if event_data.latitude is not None:
-        event.latitude = event_data.latitude
-    if event_data.longitude is not None:
-        event.longitude = event_data.longitude
+    # Update fields
+    for field, value in event_data.model_dump(exclude_unset=True).items():
+        setattr(event, field, value)
     
     await db.commit()
     await db.refresh(event)
@@ -296,13 +164,14 @@ async def update_event(
     return event
 
 
-@router.delete("/{event_id}")
+@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_event(
     event_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Delete an event (owner only)"""
+    # Get event
     result = await db.execute(
         select(Event).where(Event.event_id == event_id)
     )
@@ -314,14 +183,15 @@ async def delete_event(
             detail="Event not found",
         )
     
+    # Check ownership
     if event.owner_id != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only event owner can delete event",
+            detail="Not authorized to delete this event",
         )
     
+    # Delete event (cascades to media, faces, etc.)
     await db.delete(event)
     await db.commit()
     
-    return {"message": "Event deleted successfully"}
-
+    return None
