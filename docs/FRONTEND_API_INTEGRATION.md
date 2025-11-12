@@ -430,14 +430,14 @@ axios.get('/api/v1/users/me', {
 const getUploadUrl = async (
   eventId: string,
   file: File,
-  accessCode: string
+  uploaderId?: string
 ) => {
   const response = await axios.post('/api/v1/media/upload-url', {
     event_id: eventId,
     filename: file.name,
     content_type: file.type,
     file_size: file.size,
-    access_code: accessCode
+    uploader_id: uploaderId
   });
   return response.data;  // { upload_url, media_id, blob_url }
 };
@@ -454,17 +454,14 @@ const uploadToBlob = async (uploadUrl: string, file: File) => {
 
 // Step 3: Confirm upload (triggers face detection)
 const confirmUpload = async (mediaId: string) => {
-  const response = await axios.post(`/api/v1/media/${mediaId}/confirm`, {
-    width: 1920,  // Optional: image dimensions
-    height: 1080
-  });
-  return response.data;  // { status: 'processing', media_id, message }
+  const response = await axios.post(`/api/v1/media/${mediaId}/confirm`);
+  return response.data;  // { status: 'processing', media_id }
 };
 
 // Complete flow
-const uploadPhoto = async (eventId: string, file: File, accessCode: string) => {
+const uploadPhoto = async (eventId: string, file: File, uploaderId?: string) => {
   // 1. Get presigned URL
-  const { upload_url, media_id } = await getUploadUrl(eventId, file, accessCode);
+  const { upload_url, media_id } = await getUploadUrl(eventId, file, uploaderId);
   
   // 2. Upload to Azure
   await uploadToBlob(upload_url, file);
@@ -530,6 +527,16 @@ class EventPhotoAPI {
     return data;
   }
   
+  async updateEvent(eventId: string, eventData: any) {
+    const { data } = await this.client.put(`/api/v1/events/${eventId}`, eventData);
+    return data;
+  }
+  
+  async deleteEvent(eventId: string) {
+    const { data } = await this.client.delete(`/api/v1/events/${eventId}`);
+    return data;
+  }
+  
   // Media
   async getEventMedia(eventId: string, limit = 50, offset = 0) {
     const { data } = await this.client.get(`/api/v1/media/events/${eventId}/media`, {
@@ -538,8 +545,18 @@ class EventPhotoAPI {
     return data;
   }
   
+  async getMedia(mediaId: string) {
+    const { data } = await this.client.get(`/api/v1/media/${mediaId}`);
+    return data;
+  }
+  
   async getMediaFaces(mediaId: string) {
     const { data } = await this.client.get(`/api/v1/media/${mediaId}/faces`);
+    return data;
+  }
+  
+  async deleteMedia(mediaId: string) {
+    const { data } = await this.client.delete(`/api/v1/media/${mediaId}`);
     return data;
   }
   

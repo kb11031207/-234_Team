@@ -77,7 +77,7 @@ Returns: List of public events with locations for map markers
 
 ```
 1. POST /api/v1/media/upload-url
-   Body: { event_id, filename, content_type, file_size, access_code }
+   Body: { event_id, filename, content_type, file_size, uploader_id }
    → Get presigned Azure URL
 
 2. PUT {presigned_url}
@@ -85,6 +85,7 @@ Returns: List of public events with locations for map markers
    → Upload directly to Azure Blob
 
 3. POST /api/v1/media/{media_id}/confirm
+   Body: (none)
    → Trigger face detection
 ```
 
@@ -100,6 +101,21 @@ Body: { access_code }
 # Create Event
 POST /api/v1/events [AUTH REQUIRED]
 Body: { title, description, is_public, can_add, event_date, location_text, latitude, longitude }
+
+# Update Event
+PUT /api/v1/events/{event_id} [AUTH REQUIRED, OWNER ONLY]
+Body: { title?, description?, is_public?, can_add?, event_date?, location_text?, latitude?, longitude? }
+(all fields optional)
+
+# Delete Event
+DELETE /api/v1/events/{event_id} [AUTH REQUIRED, OWNER ONLY]
+
+# Get Single Media
+GET /api/v1/media/{media_id}
+→ Get details of a specific media item
+
+# Delete Media
+DELETE /api/v1/media/{media_id} [AUTH REQUIRED, OWNER OR UPLOADER]
 
 # Trigger Manual Clustering (Owner only)
 POST /api/v1/faces/events/{event_id}/cluster [AUTH REQUIRED]
