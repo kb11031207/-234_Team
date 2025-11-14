@@ -291,6 +291,7 @@ const EventPage = () => {
                 media={media}
                 onPhotoClick={handlePhotoClick}
                 isLoading={mediaLoading}
+                enableSelection={true}
               />
             )}
           </Card.Body>

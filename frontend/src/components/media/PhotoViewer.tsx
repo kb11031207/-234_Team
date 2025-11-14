@@ -3,6 +3,7 @@ import { Media } from '../../types'
 import Button from '../ui/Button'
 import LoadingSpinner from '../ui/LoadingSpinner'
 import FaceOverlay from '../face/FaceOverlay'
+import { downloadImage } from '../../utils/download'
 
 export interface PhotoViewerProps {
   photos: Media[]
@@ -27,6 +28,7 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false)
   const [imageError, setImageError] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const currentPhoto = photos[currentIndex]
 
   // Reset image state when photo changes
@@ -65,6 +67,22 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
       document.body.style.overflow = 'unset'
     }
   }, [isOpen])
+
+  // Handle download
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!currentPhoto || isDownloading) return
+
+    try {
+      setIsDownloading(true)
+      await downloadImage(currentPhoto.blob_url, currentPhoto.filename)
+    } catch (error) {
+      console.error('Error downloading image:', error)
+      alert('Failed to download image. Please try again.')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   if (!isOpen || !currentPhoto) return null
 
@@ -146,6 +164,31 @@ const PhotoViewer: React.FC<PhotoViewerProps> = ({
           </svg>
         </button>
       )}
+
+      {/* Download Button */}
+      <button
+        onClick={handleDownload}
+        disabled={isDownloading}
+        className="absolute top-4 left-4 z-10 p-2 text-white hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Download photo"
+        title="Download photo"
+      >
+        {isDownloading ? (
+          <LoadingSpinner size="sm" />
+        ) : (
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        )}
+      </button>
 
       {/* Photo Info Bar */}
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 z-10">

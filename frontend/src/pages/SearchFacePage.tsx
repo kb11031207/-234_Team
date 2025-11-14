@@ -364,6 +364,7 @@ const SearchFacePage = () => {
                   media={photos}
                   onPhotoClick={handlePhotoClick}
                   isLoading={false}
+                  enableSelection={true}
                 />
               )}
             </Card.Body>

@@ -2,7 +2,7 @@
 
 import asyncio
 from collections import defaultdict
-from typing import Dict, Set
+from typing import Dict, Set, Optional
 import uuid
 import logging
 from datetime import datetime, timedelta
@@ -29,6 +29,9 @@ class FaceProcessingQueue:
         
         # Track last cluster time per event
         self.last_cluster_time: Dict[uuid.UUID, datetime] = {}
+        
+        # Track last full rebuild time per event (for incremental clustering decision)
+        self.last_full_rebuild_time: Dict[uuid.UUID, datetime] = {}
         
         # Thresholds
         self.BATCH_SIZE_THRESHOLD = 10  # Cluster after 10 new photos
@@ -95,6 +98,25 @@ class FaceProcessingQueue:
                 self.pending_clusters[event_id].clear()
                 self.last_cluster_time[event_id] = datetime.now()
                 logger.info(f"Cleared {count} pending items for event {event_id}")
+    
+    async def mark_full_rebuild(self, event_id: uuid.UUID):
+        """Mark that a full rebuild was performed for an event"""
+        async with self._lock:
+            self.last_full_rebuild_time[event_id] = datetime.now()
+            logger.debug(f"Marked full rebuild time for event {event_id}")
+    
+    async def get_last_full_rebuild_time(self, event_id: uuid.UUID) -> Optional[datetime]:
+        """
+        Get the last time a full rebuild was performed for an event
+        
+        Args:
+            event_id: Event UUID
+            
+        Returns:
+            datetime of last full rebuild, or None if never rebuilt
+        """
+        async with self._lock:
+            return self.last_full_rebuild_time.get(event_id)
     
     async def get_pending_events(self) -> list[uuid.UUID]:
         """Get list of events that need clustering"""
