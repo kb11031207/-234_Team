@@ -74,6 +74,7 @@ export interface CreateEventData {
   location_text?: string
   latitude?: number
   longitude?: number
+  cover_photo_url?: string
 }
 
 export interface UploadRequest {

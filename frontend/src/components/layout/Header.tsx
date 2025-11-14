@@ -1,32 +1,62 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import Button from '../ui/Button'
 
 const Header = () => {
   const { user, signInWithGoogle, signOut } = useAuth()
 
   return (
-    <header style={{ padding: '1rem 2rem', background: '#333', color: 'white' }}>
-      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link to="/" style={{ color: 'white', textDecoration: 'none', fontSize: '1.5rem', fontWeight: 'bold' }}>
-          Event Photos
+    <header className="bg-neutral-800 text-white shadow-md">
+      <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <Link to="/" className="text-2xl font-bold text-white hover:text-primary-400 transition-colors">
+          The Scene
         </Link>
         
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Home</Link>
+        <div className="flex items-center gap-4">
+          <Link 
+            to="/" 
+            className="text-white hover:text-primary-400 transition-colors font-medium"
+          >
+            Home
+          </Link>
+          <Link 
+            to="/access-code" 
+            className="text-white hover:text-primary-400 transition-colors font-medium"
+          >
+            Access Code
+          </Link>
           
           {user ? (
             <>
-              <Link to="/my-events" style={{ color: 'white', textDecoration: 'none' }}>My Events</Link>
-              <Link to="/create" style={{ color: 'white', textDecoration: 'none' }}>Create Event</Link>
-              <span>{user.displayName || user.email}</span>
-              <button onClick={signOut} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>
+              <Link 
+                to="/my-events" 
+                className="text-white hover:text-primary-400 transition-colors font-medium"
+              >
+                My Events
+              </Link>
+              <Link 
+                to="/create" 
+                className="text-white hover:text-primary-400 transition-colors font-medium"
+              >
+                Create Event
+              </Link>
+              <span className="text-white text-sm">{user.displayName || user.email}</span>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={signOut}
+              >
                 Sign Out
-              </button>
+              </Button>
             </>
           ) : (
-            <button onClick={signInWithGoogle} style={{ padding: '0.5rem 1rem', cursor: 'pointer' }}>
+            <Button 
+              variant="primary" 
+              size="sm" 
+              onClick={signInWithGoogle}
+            >
               Sign In with Google
-            </button>
+            </Button>
           )}
         </div>
       </nav>

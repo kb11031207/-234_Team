@@ -1,27 +1,105 @@
-/* Import Leaflet CSS */
+/* Import Leaflet CSS BEFORE Tailwind to ensure proper order */
 @import 'leaflet/dist/leaflet.css';
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Variables for layout heights */
+:root {
+  --header-height: 80px;
+  --footer-height: 100px;
+  --content-height: calc(100vh - var(--header-height) - var(--footer-height));
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
+/* Custom base styles */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* Protect Leaflet elements from Tailwind reset */
+  .leaflet-container *,
+  .leaflet-container *::before,
+  .leaflet-container *::after {
+    box-sizing: content-box !important;
+  }
+
+  /* Restore Leaflet's essential styles */
+  .leaflet-container {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Restore Leaflet control spacing */
+  .leaflet-control {
+    margin: 10px !important;
+  }
+
+  .leaflet-popup-content-wrapper {
+    padding: 1px !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 13px 19px !important;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-gray-50;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Fix Leaflet container z-index and positioning */
+.leaflet-container {
+  position: relative;
+  z-index: 1;
+  background: #e5e7eb;
 }
 
-#root {
-  min-height: 100vh;
+/* Fix Leaflet controls z-index */
+.leaflet-control-container {
+  z-index: 1000;
+  position: relative;
+}
+
+/* Fix Leaflet popup z-index */
+.leaflet-popup-pane {
+  z-index: 1001;
+}
+
+/* Ensure Leaflet tiles render correctly */
+.leaflet-tile-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-tile {
+  display: block;
+  width: 256px;
+  height: 256px;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 

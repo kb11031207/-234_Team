@@ -26,8 +26,8 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements
 COPY backend/requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (increased timeout for large packages like face-recognition-models)
+RUN pip install --no-cache-dir --default-timeout=1000 -r requirements.txt
 
 # Copy application code
 COPY backend/app ./app

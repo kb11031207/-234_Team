@@ -1,2123 +1,1644 @@
 {
-   "openapi": "3.1.0",
-   "info": {
-     "title": "Event Photo Sharing API",
-     "description": "API for event photo sharing with AI face detection",
-     "version": "0.1.0"
-   },
-   "paths": {
-     "/api/v1/auth/register": {
-       "post": {
-         "tags": [
-           "auth"
-         ],
-         "summary": "Register User",
-         "description": "Register or login user with Firebase token\nCreates user if doesn't exist, returns existing user otherwise",
-         "operationId": "register_user_api_v1_auth_register_post",
-         "requestBody": {
-           "content": {
-             "application/json": {
-               "schema": {
-                 "$ref": "#/components/schemas/UserCreate"
-               }
-             }
-           },
-           "required": true
-         },
-         "responses": {
-           "201": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/UserResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         },
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ]
-       }
-     },
-     "/api/v1/auth/me": {
-       "get": {
-         "tags": [
-           "auth"
-         ],
-         "summary": "Get Current User Info",
-         "description": "Get current authenticated user information",
-         "operationId": "get_current_user_info_api_v1_auth_me_get",
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/UserResponse"
-                 }
-               }
-             }
-           }
-         },
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ]
-       }
-     },
-     "/api/v1/users/me": {
-       "get": {
-         "tags": [
-           "users"
-         ],
-         "summary": "Get Current User Profile",
-         "description": "Get current authenticated user profile",
-         "operationId": "get_current_user_profile_api_v1_users_me_get",
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/UserResponse"
-                 }
-               }
-             }
-           }
-         },
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ]
-       },
-       "put": {
-         "tags": [
-           "users"
-         ],
-         "summary": "Update User Profile",
-         "description": "Update current user profile",
-         "operationId": "update_user_profile_api_v1_users_me_put",
-         "requestBody": {
-           "content": {
-             "application/json": {
-               "schema": {
-                 "$ref": "#/components/schemas/UserUpdate"
-               }
-             }
-           },
-           "required": true
-         },
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/UserResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         },
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ]
-       }
-     },
-     "/api/v1/events": {
-       "post": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Create Event",
-         "description": "Create a new event",
-         "operationId": "create_event_api_v1_events_post",
-         "requestBody": {
-           "content": {
-             "application/json": {
-               "schema": {
-                 "$ref": "#/components/schemas/EventCreate"
-               }
-             }
-           },
-           "required": true
-         },
-         "responses": {
-           "201": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/EventResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         },
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ]
-       }
-     },
-     "/api/v1/events/{event_id}": {
-       "get": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Get Event",
-         "description": "Get event details (public or with valid access code)",
-         "operationId": "get_event_api_v1_events__event_id__get",
-         "parameters": [
-           {
-             "name": "event_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Event Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/EventResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       },
-       "put": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Update Event",
-         "description": "Update an event (owner only)",
-         "operationId": "update_event_api_v1_events__event_id__put",
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ],
-         "parameters": [
-           {
-             "name": "event_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Event Id"
-             }
-           }
-         ],
-         "requestBody": {
-           "required": true,
-           "content": {
-             "application/json": {
-               "schema": {
-                 "$ref": "#/components/schemas/EventUpdate"
-               }
-             }
-           }
-         },
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/EventResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       },
-       "delete": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Delete Event",
-         "description": "Delete an event (owner only)",
-         "operationId": "delete_event_api_v1_events__event_id__delete",
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ],
-         "parameters": [
-           {
-             "name": "event_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Event Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/events/validate-access": {
-       "post": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Validate Access Code",
-         "description": "Validate access code and return event info",
-         "operationId": "validate_access_code_api_v1_events_validate_access_post",
-         "requestBody": {
-           "content": {
-             "application/json": {
-               "schema": {
-                 "$ref": "#/components/schemas/AccessCodeValidation"
-               }
-             }
-           },
-           "required": true
-         },
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/events/me/events": {
-       "get": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Get My Events",
-         "description": "Get all events owned by current user",
-         "operationId": "get_my_events_api_v1_events_me_events_get",
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "items": {
-                     "$ref": "#/components/schemas/EventResponse"
-                   },
-                   "type": "array",
-                   "title": "Response Get My Events Api V1 Events Me Events Get"
-                 }
-               }
-             }
-           }
-         },
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ]
-       }
-     },
-     "/api/v1/events/public": {
-       "get": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Get Public Events",
-         "description": "Get public events (for home page map)\n\nArgs:\n    latitude: User's latitude (optional, for nearby events)\n    longitude: User's longitude (optional)\n    radius: Search radius in km (default: 50)\n    limit: Max results (default: 50)",
-         "operationId": "get_public_events_api_v1_events_public_get",
-         "parameters": [
-           {
-             "name": "latitude",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "number",
-               "title": "Latitude"
-             }
-           },
-           {
-             "name": "longitude",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "number",
-               "title": "Longitude"
-             }
-           },
-           {
-             "name": "radius",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "number",
-               "default": 50,
-               "title": "Radius"
-             }
-           },
-           {
-             "name": "limit",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "integer",
-               "default": 50,
-               "title": "Limit"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "type": "array",
-                   "items": {
-                     "$ref": "#/components/schemas/PublicEventResponse-Output"
-                   },
-                   "title": "Response Get Public Events Api V1 Events Public Get"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/events/{event_id}/stats": {
-       "get": {
-         "tags": [
-           "events"
-         ],
-         "summary": "Get Event Statistics",
-         "description": "Get event statistics",
-         "operationId": "get_event_statistics_api_v1_events__event_id__stats_get",
-         "parameters": [
-           {
-             "name": "event_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Event Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/EventStatsResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/media/upload-url": {
-       "post": {
-         "tags": [
-           "media"
-         ],
-         "summary": "Get Upload Url",
-         "description": "Get presigned URL for direct upload to Azure Blob Storage",
-         "operationId": "get_upload_url_api_v1_media_upload_url_post",
-         "requestBody": {
-           "content": {
-             "application/json": {
-               "schema": {
-                 "$ref": "#/components/schemas/MediaUploadRequest"
-               }
-             }
-           },
-           "required": true
-         },
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/PresignedUploadResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/media/{media_id}/confirm": {
-       "post": {
-         "tags": [
-           "media"
-         ],
-         "summary": "Confirm Upload",
-         "description": "Confirm upload and trigger face detection",
-         "operationId": "confirm_upload_api_v1_media__media_id__confirm_post",
-         "parameters": [
-           {
-             "name": "media_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Media Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/media/events/{event_id}/media": {
-       "get": {
-         "tags": [
-           "media"
-         ],
-         "summary": "List Event Media",
-         "description": "Get all media for an event (Gallery Page)\n\nArgs:\n    event_id: Event UUID\n    limit: Max results (default: 50, max: 100)\n    offset: Pagination offset (default: 0)\n    sort: Sort order - \"newest\", \"oldest\", \"most_faces\" (default: newest)\n    has_faces: Filter by face presence (optional)",
-         "operationId": "list_event_media_api_v1_media_events__event_id__media_get",
-         "parameters": [
-           {
-             "name": "event_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Event Id"
-             }
-           },
-           {
-             "name": "limit",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "integer",
-               "default": 50,
-               "title": "Limit"
-             }
-           },
-           {
-             "name": "offset",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "integer",
-               "default": 0,
-               "title": "Offset"
-             }
-           },
-           {
-             "name": "sort",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "string",
-               "default": "newest",
-               "title": "Sort"
-             }
-           },
-           {
-             "name": "has_faces",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "boolean",
-               "title": "Has Faces"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "type": "array",
-                   "items": {
-                     "$ref": "#/components/schemas/MediaResponse"
-                   },
-                   "title": "Response List Event Media Api V1 Media Events  Event Id  Media Get"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/media/{media_id}": {
-       "get": {
-         "tags": [
-           "media"
-         ],
-         "summary": "Get Media",
-         "description": "Get a single media item by ID",
-         "operationId": "get_media_api_v1_media__media_id__get",
-         "parameters": [
-           {
-             "name": "media_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Media Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/MediaResponse"
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       },
-       "delete": {
-         "tags": [
-           "media"
-         ],
-         "summary": "Delete Media",
-         "description": "Delete a media item (owner or uploader only)",
-         "operationId": "delete_media_api_v1_media__media_id__delete",
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ],
-         "parameters": [
-           {
-             "name": "media_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Media Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/media/{media_id}/faces": {
-       "get": {
-         "tags": [
-           "media"
-         ],
-         "summary": "Get Media Faces",
-         "description": "Get all faces detected in a specific media item",
-         "operationId": "get_media_faces_api_v1_media__media_id__faces_get",
-         "parameters": [
-           {
-             "name": "media_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Media Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/faces/search": {
-       "post": {
-         "tags": [
-           "faces"
-         ],
-         "summary": "Search Faces",
-         "description": "Search for similar faces in an event\nFinds all photos containing the same person as the given face",
-         "operationId": "search_faces_api_v1_faces_search_post",
-         "requestBody": {
-           "content": {
-             "application/json": {
-               "schema": {
-                 "$ref": "#/components/schemas/Body_search_faces_api_v1_faces_search_post"
-               }
-             }
-           },
-           "required": true
-         },
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/faces/events/{event_id}/clusters": {
-       "get": {
-         "tags": [
-           "faces"
-         ],
-         "summary": "Get Event Clusters",
-         "description": "Get all face clusters (groups of people) in an event\nUsed for \"Find People\" or \"Search Face\" page",
-         "operationId": "get_event_clusters_api_v1_faces_events__event_id__clusters_get",
-         "parameters": [
-           {
-             "name": "event_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Event Id"
-             }
-           },
-           {
-             "name": "limit",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "integer",
-               "default": 50,
-               "title": "Limit"
-             }
-           },
-           {
-             "name": "offset",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "integer",
-               "default": 0,
-               "title": "Offset"
-             }
-           },
-           {
-             "name": "min_faces",
-             "in": "query",
-             "required": false,
-             "schema": {
-               "type": "integer",
-               "default": 1,
-               "title": "Min Faces"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/faces/clusters/{cluster_id}/identify": {
-       "post": {
-         "tags": [
-           "faces"
-         ],
-         "summary": "Identify Self In Cluster",
-         "description": "Identify yourself in a cluster (\"This is me\" button)\nAssociates your user account with this face cluster",
-         "operationId": "identify_self_in_cluster_api_v1_faces_clusters__cluster_id__identify_post",
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ],
-         "parameters": [
-           {
-             "name": "cluster_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Cluster Id"
-             }
-           }
-         ],
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/api/v1/faces/events/{event_id}/cluster": {
-       "post": {
-         "tags": [
-           "faces"
-         ],
-         "summary": "Trigger Face Clustering",
-         "description": "Manually trigger face clustering for an event\n(Owner only - for re-clustering or initial clustering)",
-         "operationId": "trigger_face_clustering_api_v1_faces_events__event_id__cluster_post",
-         "security": [
-           {
-             "HTTPBearer": []
-           }
-         ],
-         "parameters": [
-           {
-             "name": "event_id",
-             "in": "path",
-             "required": true,
-             "schema": {
-               "type": "string",
-               "title": "Event Id"
-             }
-           }
-         ],
-         "requestBody": {
-           "content": {
-             "application/json": {
-               "schema": {
-                 "type": "number",
-                 "default": 0.6,
-                 "title": "Tolerance"
-               }
-             }
-           }
-         },
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           },
-           "422": {
-             "description": "Validation Error",
-             "content": {
-               "application/json": {
-                 "schema": {
-                   "$ref": "#/components/schemas/HTTPValidationError"
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/health": {
-       "get": {
-         "summary": "Health Check",
-         "description": "Health check endpoint",
-         "operationId": "health_check_health_get",
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           }
-         }
-       }
-     },
-     "/": {
-       "get": {
-         "summary": "Root",
-         "description": "Root endpoint",
-         "operationId": "root__get",
-         "responses": {
-           "200": {
-             "description": "Successful Response",
-             "content": {
-               "application/json": {
-                 "schema": {
- 
-                 }
-               }
-             }
-           }
-         }
-       }
-     }
-   },
-   "components": {
-     "schemas": {
-       "AccessCodeValidation": {
-         "properties": {
-           "access_code": {
-             "type": "string",
-             "maxLength": 20,
-             "minLength": 1,
-             "title": "Access Code"
-           }
-         },
-         "type": "object",
-         "required": [
-           "access_code"
-         ],
-         "title": "AccessCodeValidation",
-         "description": "Schema for validating access code"
-       },
-       "Body_search_faces_api_v1_faces_search_post": {
-         "properties": {
-           "event_id": {
-             "type": "string",
-             "title": "Event Id"
-           },
-           "face_id": {
-             "type": "string",
-             "title": "Face Id"
-           }
-         },
-         "type": "object",
-         "required": [
-           "event_id",
-           "face_id"
-         ],
-         "title": "Body_search_faces_api_v1_faces_search_post"
-       },
-       "EventCreate": {
-         "properties": {
-           "title": {
-             "type": "string",
-             "maxLength": 255,
-             "minLength": 1,
-             "title": "Title"
-           },
-           "description": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Description"
-           },
-           "is_public": {
-             "type": "boolean",
-             "title": "Is Public",
-             "default": false
-           },
-           "can_add": {
-             "type": "string",
-             "pattern": "^(owner_only|code_holders|public)$",
-             "title": "Can Add",
-             "default": "code_holders"
-           },
-           "event_date": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "date-time"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Event Date"
-           },
-           "location_text": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "maxLength": 255
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Location Text"
-           },
-           "latitude": {
-             "anyOf": [
-               {
-                 "type": "number",
-                 "maximum": 90,
-                 "minimum": -90
-               },
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Latitude"
-           },
-           "longitude": {
-             "anyOf": [
-               {
-                 "type": "number",
-                 "maximum": 180,
-                 "minimum": -180
-               },
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Longitude"
-           }
-         },
-         "type": "object",
-         "required": [
-           "title"
-         ],
-         "title": "EventCreate",
-         "description": "Schema for creating an event"
-       },
-       "EventResponse": {
-         "properties": {
-           "event_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Event Id"
-           },
-           "owner_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Owner Id"
-           },
-           "title": {
-             "type": "string",
-             "title": "Title"
-           },
-           "description": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Description"
-           },
-           "access_code": {
-             "type": "string",
-             "title": "Access Code"
-           },
-           "qr_code_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Qr Code Url"
-           },
-           "is_public": {
-             "type": "boolean",
-             "title": "Is Public"
-           },
-           "can_add": {
-             "type": "string",
-             "title": "Can Add"
-           },
-           "event_date": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "date-time"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Event Date"
-           },
-           "location_text": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Location Text"
-           },
-           "latitude": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Latitude"
-           },
-           "longitude": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Longitude"
-           },
-           "cover_photo_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Cover Photo Url"
-           },
-           "created_at": {
-             "type": "string",
-             "format": "date-time",
-             "title": "Created At"
-           },
-           "updated_at": {
-             "type": "string",
-             "format": "date-time",
-             "title": "Updated At"
-           }
-         },
-         "type": "object",
-         "required": [
-           "event_id",
-           "owner_id",
-           "title",
-           "description",
-           "access_code",
-           "qr_code_url",
-           "is_public",
-           "can_add",
-           "event_date",
-           "location_text",
-           "latitude",
-           "longitude",
-           "cover_photo_url",
-           "created_at",
-           "updated_at"
-         ],
-         "title": "EventResponse",
-         "description": "Schema for event response"
-       },
-       "EventStatsResponse": {
-         "properties": {
-           "event_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Event Id"
-           },
-           "title": {
-             "type": "string",
-             "title": "Title"
-           },
-           "total_media": {
-             "type": "integer",
-             "title": "Total Media"
-           },
-           "total_photos": {
-             "type": "integer",
-             "title": "Total Photos"
-           },
-           "total_videos": {
-             "type": "integer",
-             "title": "Total Videos"
-           },
-           "total_faces_detected": {
-             "type": "integer",
-             "title": "Total Faces Detected"
-           },
-           "total_people_clusters": {
-             "type": "integer",
-             "title": "Total People Clusters"
-           },
-           "identified_people": {
-             "type": "integer",
-             "title": "Identified People"
-           },
-           "processing_status": {
-             "additionalProperties": true,
-             "type": "object",
-             "title": "Processing Status"
-           }
-         },
-         "type": "object",
-         "required": [
-           "event_id",
-           "title",
-           "total_media",
-           "total_photos",
-           "total_videos",
-           "total_faces_detected",
-           "total_people_clusters",
-           "identified_people",
-           "processing_status"
-         ],
-         "title": "EventStatsResponse",
-         "description": "Schema for event statistics"
-       },
-       "EventUpdate": {
-         "properties": {
-           "title": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "maxLength": 255,
-                 "minLength": 1
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Title"
-           },
-           "description": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Description"
-           },
-           "is_public": {
-             "anyOf": [
-               {
-                 "type": "boolean"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Is Public"
-           },
-           "can_add": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "pattern": "^(owner_only|code_holders|public)$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Can Add"
-           },
-           "event_date": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "date-time"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Event Date"
-           },
-           "location_text": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "maxLength": 255
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Location Text"
-           },
-           "latitude": {
-             "anyOf": [
-               {
-                 "type": "number",
-                 "maximum": 90,
-                 "minimum": -90
-               },
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Latitude"
-           },
-           "longitude": {
-             "anyOf": [
-               {
-                 "type": "number",
-                 "maximum": 180,
-                 "minimum": -180
-               },
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Longitude"
-           }
-         },
-         "type": "object",
-         "title": "EventUpdate",
-         "description": "Schema for updating an event (all fields optional)"
-       },
-       "HTTPValidationError": {
-         "properties": {
-           "detail": {
-             "items": {
-               "$ref": "#/components/schemas/ValidationError"
-             },
-             "type": "array",
-             "title": "Detail"
-           }
-         },
-         "type": "object",
-         "title": "HTTPValidationError"
-       },
-       "MediaResponse": {
-         "properties": {
-           "media_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Media Id"
-           },
-           "event_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Event Id"
-           },
-           "uploader_id": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "uuid4"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Uploader Id"
-           },
-           "blob_url": {
-             "type": "string",
-             "title": "Blob Url"
-           },
-           "thumbnail_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Thumbnail Url"
-           },
-           "filename": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Filename"
-           },
-           "content_type": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Content Type"
-           },
-           "file_size": {
-             "anyOf": [
-               {
-                 "type": "integer"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "File Size"
-           },
-           "width": {
-             "anyOf": [
-               {
-                 "type": "integer"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Width"
-           },
-           "height": {
-             "anyOf": [
-               {
-                 "type": "integer"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Height"
-           },
-           "media_type": {
-             "type": "string",
-             "title": "Media Type"
-           },
-           "face_detection_status": {
-             "type": "string",
-             "title": "Face Detection Status"
-           },
-           "face_count": {
-             "type": "integer",
-             "title": "Face Count"
-           },
-           "created_at": {
-             "type": "string",
-             "format": "date-time",
-             "title": "Created At"
-           }
-         },
-         "type": "object",
-         "required": [
-           "media_id",
-           "event_id",
-           "uploader_id",
-           "blob_url",
-           "thumbnail_url",
-           "filename",
-           "content_type",
-           "file_size",
-           "width",
-           "height",
-           "media_type",
-           "face_detection_status",
-           "face_count",
-           "created_at"
-         ],
-         "title": "MediaResponse",
-         "description": "Schema for media response"
-       },
-       "MediaUploadRequest": {
-         "properties": {
-           "event_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Event Id"
-           },
-           "filename": {
-             "type": "string",
-             "title": "Filename"
-           },
-           "content_type": {
-             "type": "string",
-             "title": "Content Type"
-           },
-           "file_size": {
-             "type": "integer",
-             "title": "File Size"
-           },
-           "uploader_id": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "uuid4"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Uploader Id"
-           }
-         },
-         "type": "object",
-         "required": [
-           "event_id",
-           "filename",
-           "content_type",
-           "file_size"
-         ],
-         "title": "MediaUploadRequest",
-         "description": "Schema for requesting upload URL"
-       },
-       "PresignedUploadResponse": {
-         "properties": {
-           "upload_url": {
-             "type": "string",
-             "title": "Upload Url"
-           },
-           "media_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Media Id"
-           },
-           "blob_url": {
-             "type": "string",
-             "title": "Blob Url"
-           }
-         },
-         "type": "object",
-         "required": [
-           "upload_url",
-           "media_id",
-           "blob_url"
-         ],
-         "title": "PresignedUploadResponse",
-         "description": "Schema for presigned upload URL response"
-       },
-       "PublicEventResponse-Input": {
-         "properties": {
-           "event_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Event Id"
-           },
-           "title": {
-             "type": "string",
-             "title": "Title"
-           },
-           "location_text": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Location Text"
-           },
-           "latitude": {
-             "anyOf": [
-               {
-                 "type": "number"
-               },
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Latitude"
-           },
-           "longitude": {
-             "anyOf": [
-               {
-                 "type": "number"
-               },
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Longitude"
-           },
-           "event_date": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "date-time"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Event Date"
-           },
-           "cover_photo_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Cover Photo Url"
-           },
-           "media_count": {
-             "type": "integer",
-             "title": "Media Count",
-             "default": 0
-           },
-           "created_at": {
-             "type": "string",
-             "format": "date-time",
-             "title": "Created At"
-           }
-         },
-         "type": "object",
-         "required": [
-           "event_id",
-           "title",
-           "location_text",
-           "latitude",
-           "longitude",
-           "event_date",
-           "cover_photo_url",
-           "created_at"
-         ],
-         "title": "PublicEventResponse",
-         "description": "Schema for public event listing (map markers)"
-       },
-       "PublicEventResponse-Output": {
-         "properties": {
-           "event_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "Event Id"
-           },
-           "title": {
-             "type": "string",
-             "title": "Title"
-           },
-           "location_text": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Location Text"
-           },
-           "latitude": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Latitude"
-           },
-           "longitude": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Longitude"
-           },
-           "event_date": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "date-time"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Event Date"
-           },
-           "cover_photo_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Cover Photo Url"
-           },
-           "media_count": {
-             "type": "integer",
-             "title": "Media Count",
-             "default": 0
-           },
-           "created_at": {
-             "type": "string",
-             "format": "date-time",
-             "title": "Created At"
-           }
-         },
-         "type": "object",
-         "required": [
-           "event_id",
-           "title",
-           "location_text",
-           "latitude",
-           "longitude",
-           "event_date",
-           "cover_photo_url",
-           "created_at"
-         ],
-         "title": "PublicEventResponse",
-         "description": "Schema for public event listing (map markers)"
-       },
-       "UserCreate": {
-         "properties": {
-           "email": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "format": "email"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Email"
-           },
-           "display_name": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Display Name"
-           },
-           "photo_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Photo Url"
-           }
-         },
-         "type": "object",
-         "title": "UserCreate",
-         "description": "Schema for user registration"
-       },
-       "UserResponse": {
-         "properties": {
-           "user_id": {
-             "type": "string",
-             "format": "uuid4",
-             "title": "User Id"
-           },
-           "firebase_uid": {
-             "type": "string",
-             "title": "Firebase Uid"
-           },
-           "email": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Email"
-           },
-           "display_name": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Display Name"
-           },
-           "photo_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Photo Url"
-           },
-           "created_at": {
-             "type": "string",
-             "format": "date-time",
-             "title": "Created At"
-           }
-         },
-         "type": "object",
-         "required": [
-           "user_id",
-           "firebase_uid",
-           "email",
-           "display_name",
-           "photo_url",
-           "created_at"
-         ],
-         "title": "UserResponse",
-         "description": "Schema for user response"
-       },
-       "UserUpdate": {
-         "properties": {
-           "display_name": {
-             "anyOf": [
-               {
-                 "type": "string",
-                 "maxLength": 255
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Display Name"
-           },
-           "photo_url": {
-             "anyOf": [
-               {
-                 "type": "string"
-               },
-               {
-                 "type": "null"
-               }
-             ],
-             "title": "Photo Url"
-           }
-         },
-         "type": "object",
-         "title": "UserUpdate",
-         "description": "Schema for updating user profile"
-       },
-       "ValidationError": {
-         "properties": {
-           "loc": {
-             "items": {
-               "anyOf": [
-                 {
-                   "type": "string"
-                 },
-                 {
-                   "type": "integer"
-                 }
-               ]
-             },
-             "type": "array",
-             "title": "Location"
-           },
-           "msg": {
-             "type": "string",
-             "title": "Message"
-           },
-           "type": {
-             "type": "string",
-             "title": "Error Type"
-           }
-         },
-         "type": "object",
-         "required": [
-           "loc",
-           "msg",
-           "type"
-         ],
-         "title": "ValidationError"
-       }
-     },
-     "securitySchemes": {
-       "HTTPBearer": {
-         "type": "http",
-         "scheme": "bearer"
-       }
-     }
-   }
- }
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Event Photo Sharing API",
+    "description": "API for event photo sharing with AI face detection",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Register User",
+        "description": "Register or login user with Firebase token\nCreates user if doesn't exist, returns existing user otherwise",
+        "operationId": "register_user_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get Current User Info",
+        "description": "Get current authenticated user information",
+        "operationId": "get_current_user_info_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Create Event",
+        "description": "Create a new event",
+        "operationId": "create_event_api_v1_events_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/public": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get Public Events",
+        "description": "Get all public events, optionally filtered by location",
+        "operationId": "get_public_events_api_v1_events_public_get",
+        "parameters": [
+          {
+            "name": "latitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "title": "Latitude"
+            }
+          },
+          {
+            "name": "longitude",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "title": "Longitude"
+            }
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Radius"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "title": "Response Get Public Events Api V1 Events Public Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/me/events": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get My Events",
+        "description": "Get all events owned by current user",
+        "operationId": "get_my_events_api_v1_events_me_events_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Get My Events Api V1 Events Me Events Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/validate-access": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Validate Access Code",
+        "description": "Validate access code and return event info",
+        "operationId": "validate_access_code_api_v1_events_validate_access_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccessCodeValidation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/{event_id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get Event",
+        "description": "Get event details (public or with valid access code)",
+        "operationId": "get_event_api_v1_events__event_id__get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Update Event",
+        "description": "Update an event (owner only)",
+        "operationId": "update_event_api_v1_events__event_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Delete Event",
+        "description": "Delete an event (owner only)",
+        "operationId": "delete_event_api_v1_events__event_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/upload-url": {
+      "post": {
+        "tags": [
+          "media"
+        ],
+        "summary": "Get Upload Url",
+        "description": "Get presigned URL for direct upload to Azure Blob Storage",
+        "operationId": "get_upload_url_api_v1_media_upload_url_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaUploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignedUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/{media_id}/confirm": {
+      "post": {
+        "tags": [
+          "media"
+        ],
+        "summary": "Confirm Upload",
+        "description": "Confirm upload and trigger face detection",
+        "operationId": "confirm_upload_api_v1_media__media_id__confirm_post",
+        "parameters": [
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Media Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/media/events/{event_id}/media": {
+      "get": {
+        "tags": [
+          "media"
+        ],
+        "summary": "List Event Media",
+        "description": "Get all media for an event with pagination",
+        "operationId": "list_event_media_api_v1_media_events__event_id__media_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MediaResponse"
+                  },
+                  "title": "Response List Event Media Api V1 Media Events  Event Id  Media Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/faces/search-by-selfie": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Search By Selfie",
+        "description": "Upload a selfie and find all photos you appear in\n\nTHIS IS THE MAIN FEATURE - \"Find me in this event\"\n\nUser flow:\n1. User goes to event\n2. Clicks \"Find me\"\n3. Uploads selfie\n4. Gets all photos they appear in",
+        "operationId": "search_by_selfie_api_v1_faces_search_by_selfie_post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "tolerance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.6,
+              "title": "Tolerance"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_search_by_selfie_api_v1_faces_search_by_selfie_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/faces/search": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Search Faces",
+        "description": "Search for similar faces in an event (legacy endpoint)\n\nUse /search-by-selfie instead for uploading selfies",
+        "operationId": "search_faces_api_v1_faces_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FaceSearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FaceSearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/faces/search-by-face/{face_id}": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Search By Face Id",
+        "description": "Find all photos containing faces similar to the given face\n\nThis is the \"Find Similar\" feature - click on a face, see all photos with that person",
+        "operationId": "search_by_face_id_api_v1_faces_search_by_face__face_id__post",
+        "parameters": [
+          {
+            "name": "face_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Face Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/faces/events/{event_id}/clusters": {
+      "get": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Get Event Clusters",
+        "description": "Get all face clusters (groups of people) in an event\n\nReturns a list of people detected in the event, with their representative face\nand count of photos they appear in",
+        "operationId": "get_event_clusters_api_v1_faces_events__event_id__clusters_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "min_faces",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "title": "Min Faces"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/faces/clusters/{cluster_id}/identify": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Identify Cluster",
+        "description": "Identify yourself in a cluster (claim \"This is me\")\n\nLinks a cluster to a user account so they can easily find all photos of themselves",
+        "operationId": "identify_cluster_api_v1_faces_clusters__cluster_id__identify_post",
+        "parameters": [
+          {
+            "name": "cluster_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cluster Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/faces/events/{event_id}/trigger-clustering": {
+      "post": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Trigger Clustering",
+        "description": "Manually trigger face clustering for an event\n\nUseful for:\n- Event owner wants to refresh clustering\n- Initial clustering after batch upload\n- Adjusting tolerance parameter",
+        "operationId": "trigger_clustering_api_v1_faces_events__event_id__trigger_clustering_post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "tolerance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "default": 0.6,
+              "title": "Tolerance"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/faces/media/{media_id}/faces": {
+      "get": {
+        "tags": [
+          "faces"
+        ],
+        "summary": "Get Media Faces",
+        "description": "Get all detected faces in a specific media item\n\nReturns bounding boxes and cluster information for each face",
+        "operationId": "get_media_faces_api_v1_faces_media__media_id__faces_get",
+        "parameters": [
+          {
+            "name": "media_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Media Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Health check endpoint",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "description": "Root endpoint",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccessCodeValidation": {
+        "properties": {
+          "access_code": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Access Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_code"
+        ],
+        "title": "AccessCodeValidation",
+        "description": "Schema for validating access code"
+      },
+      "Body_search_by_selfie_api_v1_faces_search_by_selfie_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_search_by_selfie_api_v1_faces_search_by_selfie_post"
+      },
+      "EventCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_public": {
+            "type": "boolean",
+            "title": "Is Public",
+            "default": false
+          },
+          "can_add": {
+            "type": "string",
+            "pattern": "^(owner_only|code_holders|public)$",
+            "title": "Can Add",
+            "default": "code_holders"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "location_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Text"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90,
+                "minimum": -90
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180,
+                "minimum": -180
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "EventCreate",
+        "description": "Schema for creating an event"
+      },
+      "EventResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Event Id"
+          },
+          "owner_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Owner Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "access_code": {
+            "type": "string",
+            "title": "Access Code"
+          },
+          "qr_code_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qr Code Url"
+          },
+          "is_public": {
+            "type": "boolean",
+            "title": "Is Public"
+          },
+          "can_add": {
+            "type": "string",
+            "title": "Can Add"
+          },
+          "event_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Date"
+          },
+          "location_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Text"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "cover_photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cover Photo Url"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "owner_id",
+          "title",
+          "description",
+          "access_code",
+          "qr_code_url",
+          "is_public",
+          "can_add",
+          "event_date",
+          "location_text",
+          "latitude",
+          "longitude",
+          "cover_photo_url",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EventResponse",
+        "description": "Schema for event response"
+      },
+      "FaceSearchRequest": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Event Id"
+          },
+          "selfie_url": {
+            "type": "string",
+            "title": "Selfie Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "selfie_url"
+        ],
+        "title": "FaceSearchRequest",
+        "description": "Schema for face search request"
+      },
+      "FaceSearchResponse": {
+        "properties": {
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/MediaResponse"
+            },
+            "type": "array",
+            "title": "Matches"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "matches",
+          "total"
+        ],
+        "title": "FaceSearchResponse",
+        "description": "Schema for face search results"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MediaResponse": {
+        "properties": {
+          "media_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Media Id"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Event Id"
+          },
+          "uploader_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploader Id"
+          },
+          "blob_url": {
+            "type": "string",
+            "title": "Blob Url"
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "content_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Type"
+          },
+          "file_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Size"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "face_detection_status": {
+            "type": "string",
+            "title": "Face Detection Status"
+          },
+          "face_count": {
+            "type": "integer",
+            "title": "Face Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "media_id",
+          "event_id",
+          "uploader_id",
+          "blob_url",
+          "thumbnail_url",
+          "filename",
+          "content_type",
+          "file_size",
+          "width",
+          "height",
+          "media_type",
+          "face_detection_status",
+          "face_count",
+          "created_at"
+        ],
+        "title": "MediaResponse",
+        "description": "Schema for media response"
+      },
+      "MediaUploadRequest": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Event Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "file_size": {
+            "type": "integer",
+            "title": "File Size"
+          },
+          "uploader_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploader Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "filename",
+          "content_type",
+          "file_size"
+        ],
+        "title": "MediaUploadRequest",
+        "description": "Schema for requesting upload URL"
+      },
+      "PresignedUploadResponse": {
+        "properties": {
+          "upload_url": {
+            "type": "string",
+            "title": "Upload Url"
+          },
+          "media_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "Media Id"
+          },
+          "blob_url": {
+            "type": "string",
+            "title": "Blob Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "upload_url",
+          "media_id",
+          "blob_url"
+        ],
+        "title": "PresignedUploadResponse",
+        "description": "Schema for presigned upload URL response"
+      },
+      "UserCreate": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          }
+        },
+        "type": "object",
+        "title": "UserCreate",
+        "description": "Schema for user registration"
+      },
+      "UserResponse": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid4",
+            "title": "User Id"
+          },
+          "firebase_uid": {
+            "type": "string",
+            "title": "Firebase Uid"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "firebase_uid",
+          "email",
+          "display_name",
+          "photo_url",
+          "created_at"
+        ],
+        "title": "UserResponse",
+        "description": "Schema for user response"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

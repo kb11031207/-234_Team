@@ -29,12 +29,14 @@ services:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/event_photos
       - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
       - AZURE_STORAGE_CONTAINER_NAME=${AZURE_STORAGE_CONTAINER_NAME}
+      - AZURE_FACE_API_KEY=${AZURE_FACE_API_KEY}
+      - AZURE_FACE_API_ENDPOINT=${AZURE_FACE_API_ENDPOINT}
       - FACE_RECOGNITION_MODEL=large
       - FACE_RECOGNITION_TOLERANCE=0.6
       - FIREBASE_SERVICE_ACCOUNT_PATH=/app/firebase-service-account.json
       - SECRET_KEY=${SECRET_KEY}
       - ENVIRONMENT=development
-      - CORS_ORIGINS=["http://localhost:5173"]
+      # CORS is handled in code - allows all localhost ports in development
     depends_on:
       db:
         condition: service_healthy

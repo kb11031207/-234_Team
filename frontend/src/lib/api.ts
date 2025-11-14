@@ -19,6 +19,11 @@ apiClient.interceptors.request.use(
       const token = await user.getIdToken()
       config.headers.Authorization = `Bearer ${token}`
     }
+    // If FormData, don't set Content-Type - let browser set it with boundary
+    // This is crucial for multipart/form-data uploads to work correctly
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
     return config
   },
   (error) => {
